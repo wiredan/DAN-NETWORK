@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* smooth theme transitions */
+:root {
+  color-scheme: light dark;
+}
+html, body, #root { height: 100%; }
+
+/* simple container utility */
+.container-p {
+  @apply max-w-6xl mx-auto px-4;
+}
