@@ -16,3 +16,37 @@ const ProductSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Product", ProductSchema);
+const mongoose = require("mongoose");
+
+const ProductSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["available", "sold"],
+      default: "available",
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Product", ProductSchema);
