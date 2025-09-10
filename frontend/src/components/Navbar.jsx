@@ -45,3 +45,16 @@ export default function Navbar({ theme, setTheme }) {
     </nav>
   );
 }
+import { Link } from "react-router-dom";
+
+const Navbar = () => {
+  return (
+    <nav className="flex space-x-4 bg-gray-800 text-white p-4">
+      <Link to="/">Home</Link>
+      <Link to="/dashboard">Dashboard</Link>
+      <Link to="/orders">Orders</Link> {/* ✅ new link */}
+    </nav>
+  );
+};
+
+export default Navbar;
