@@ -146,3 +146,11 @@ app.post("/orders/:id/deliver", auth, (req, res) => {
   order.status = "delivered";
   res.json({ message: "Delivery confirmed by logistics", order });
 });
+app.post("/admin/makeLogistics", auth, adminOnly, (req, res) => {
+  const { userId } = req.body;
+  const user = users.find((u) => u.id == userId);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  user.role = "logistics";
+  res.json({ message: "User assigned as logistics", user });
+});
