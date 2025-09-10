@@ -248,3 +248,5 @@ app.post("/admin/orders/:id/refund", auth, adminOnly, (req, res) => {
   order.status = "refunded";
   res.json({ message: "Refund issued by admin", order });
 });
+const orderRoutes = require("./routes/orders");
+app.use("/api/orders", orderRoutes);
