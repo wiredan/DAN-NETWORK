@@ -116,3 +116,25 @@ router.post("/resolve/:id", async (req, res) => {
 });
 
 module.exports = router;
+/**
+ * ✅ Get all orders for the logged-in user
+ */
+router.get("/all", requireKYC, async (req, res) => {
+  try {
+    const orders = await Order.find({
+      $or: [
+        { buyer: req.user._id },
+        { seller: req.user._id },
+        { logistics: req.user._id }
+      ]
+    })
+      .populate("product", "name price")
+      .populate("buyer", "name email")
+      .populate("seller", "name email")
+      .populate("logistics", "name email");
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching orders" });
+  }
+});
