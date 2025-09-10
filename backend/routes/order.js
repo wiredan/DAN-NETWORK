@@ -4,94 +4,78 @@ const Transaction = require("../models/Transaction");
 const Product = require("../models/Product");
 const User = require("../models/User");
 
-// ✅ Buyer initiates purchase → create transaction (escrow)
+// ✅ Create a new transaction (buyer initiates purchase)
 router.post("/create", async (req, res) => {
   try {
     const { buyerId, productId } = req.body;
 
-    const buyer = await User.findById(buyerId);
-    if (!buyer) return res.status(404).json({ error: "Buyer not found" });
-    if (!buyer.isKYCVerified) {
-      return res.status(403).json({ error: "KYC verification required" });
-    }
-
     const product = await Product.findById(productId).populate("seller");
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    if (product.status !== "available") {
-      return res.status(400).json({ error: "Product is not available" });
-    }
-
-    // Create transaction
     const transaction = new Transaction({
-      buyer: buyer._id,
+      buyer: buyerId,
       seller: product.seller._id,
       product: product._id,
       amount: product.price,
-      status: "escrow", // assume buyer paid → held in escrow
+      status: "pending",
     });
 
     await transaction.save();
-
-    // Mark product as reserved
-    product.status = "sold";
-    await product.save();
-
-    res.json({ message: "Transaction created in escrow", transaction });
+    res.json({ message: "Transaction created, waiting for payment", transaction });
   } catch (err) {
-    console.error("Error creating transaction:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to create transaction" });
   }
 });
 
-// ✅ Seller confirms shipment
+// ✅ Buyer confirms payment → funds in escrow
+router.post("/:id/pay", async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+
+    transaction.status = "escrow";
+    await transaction.save();
+
+    res.json({ message: "Payment confirmed, funds in escrow", transaction });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to confirm payment" });
+  }
+});
+
+// ✅ Seller ships product
 router.post("/:id/ship", async (req, res) => {
   try {
-    const { id } = req.params;
-    const transaction = await Transaction.findById(id).populate("seller");
-
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ error: "Transaction not found" });
-    if (transaction.status !== "escrow") {
-      return res.status(400).json({ error: "Transaction not in escrow" });
-    }
 
     transaction.status = "shipped";
     await transaction.save();
 
     res.json({ message: "Seller confirmed shipment", transaction });
   } catch (err) {
-    console.error("Error updating shipment:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to confirm shipment" });
   }
 });
 
-// ✅ Buyer confirms delivery → release funds
-router.post("/:id/confirm", async (req, res) => {
+// ✅ Buyer confirms delivery
+router.post("/:id/deliver", async (req, res) => {
   try {
-    const { id } = req.params;
-    const transaction = await Transaction.findById(id).populate("buyer");
-
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ error: "Transaction not found" });
-    if (transaction.status !== "shipped") {
-      return res.status(400).json({ error: "Transaction not shipped yet" });
-    }
 
-    transaction.status = "completed";
+    transaction.status = "delivered";
     await transaction.save();
 
-    res.json({ message: "Buyer confirmed delivery, funds released", transaction });
+    res.json({ message: "Buyer confirmed delivery", transaction });
   } catch (err) {
-    console.error("Error confirming delivery:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to confirm delivery" });
   }
 });
 
 // ✅ Buyer opens dispute
 router.post("/:id/dispute", async (req, res) => {
   try {
-    const { id } = req.params;
-    const transaction = await Transaction.findById(id);
-
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ error: "Transaction not found" });
 
     transaction.status = "disputed";
@@ -99,35 +83,45 @@ router.post("/:id/dispute", async (req, res) => {
 
     res.json({ message: "Dispute opened", transaction });
   } catch (err) {
-    console.error("Error opening dispute:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to open dispute" });
   }
 });
 
-// ✅ Admin override → release or refund
-router.post("/:id/admin-action", async (req, res) => {
+// ✅ Admin resolves dispute: release or refund
+router.post("/:id/resolve", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { action, adminId } = req.body; // action = "release" | "refund"
-
-    const transaction = await Transaction.findById(id);
+    const { action, adminId } = req.body;
+    const transaction = await Transaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ error: "Transaction not found" });
 
     if (action === "release") {
       transaction.status = "completed";
+      transaction.escrowReleaseApprovedBy = adminId;
     } else if (action === "refund") {
       transaction.status = "refunded";
+      transaction.escrowReleaseApprovedBy = adminId;
     } else {
       return res.status(400).json({ error: "Invalid action" });
     }
 
-    transaction.escrowReleaseApprovedBy = adminId;
     await transaction.save();
-
-    res.json({ message: `Admin action executed: ${action}`, transaction });
+    res.json({ message: "Admin resolved dispute", transaction });
   } catch (err) {
-    console.error("Error in admin action:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Failed to resolve dispute" });
+  }
+});
+
+// ✅ Fetch all transactions (for dashboard/tracking)
+router.get("/all", async (req, res) => {
+  try {
+    const transactions = await Transaction.find()
+      .populate("buyer", "email")
+      .populate("seller", "email")
+      .populate("product", "name price");
+
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch transactions" });
   }
 });
 
