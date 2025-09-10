@@ -94,3 +94,5 @@ router.post(
 );
 
 module.exports = router;
+const kycRoutes = require("./routes/kyc");
+app.use("/api/kyc", kycRoutes);
