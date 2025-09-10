@@ -250,3 +250,5 @@ app.post("/admin/orders/:id/refund", auth, adminOnly, (req, res) => {
 });
 const orderRoutes = require("./routes/orders");
 app.use("/api/orders", orderRoutes);
+const notificationRoutes = require("./routes/notification");
+app.use("/api/notifications", notificationRoutes);
