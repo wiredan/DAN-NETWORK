@@ -1,140 +1,134 @@
 const express = require("express");
-const Order = require("../models/Order");
+const router = express.Router();
+const Transaction = require("../models/Transaction");
 const Product = require("../models/Product");
 const User = require("../models/User");
 
-const router = express.Router();
-
-// Middleware to check KYC
-const requireKYC = async (req, res, next) => {
-  const user = await User.findById(req.body.userId);
-  if (!user) return res.status(404).json({ error: "User not found" });
-  if (!user.isKYCVerified) return res.status(403).json({ error: "KYC required" });
-  req.user = user;
-  next();
-};
-
-// ✅ Buyer creates order
-router.post("/create/:productId", requireKYC, async (req, res) => {
+// ✅ Buyer initiates purchase → create transaction (escrow)
+router.post("/create", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.productId);
-    if (!product || product.status !== "available") {
-      return res.status(400).json({ error: "Product not available" });
+    const { buyerId, productId } = req.body;
+
+    const buyer = await User.findById(buyerId);
+    if (!buyer) return res.status(404).json({ error: "Buyer not found" });
+    if (!buyer.isKYCVerified) {
+      return res.status(403).json({ error: "KYC verification required" });
     }
 
-    const order = new Order({
+    const product = await Product.findById(productId).populate("seller");
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    if (product.status !== "available") {
+      return res.status(400).json({ error: "Product is not available" });
+    }
+
+    // Create transaction
+    const transaction = new Transaction({
+      buyer: buyer._id,
+      seller: product.seller._id,
       product: product._id,
-      buyer: req.user._id,
-      seller: product.seller,
-      escrowAmount: product.price,
-      status: "in_escrow",
+      amount: product.price,
+      status: "escrow", // assume buyer paid → held in escrow
     });
 
-    product.status = "in_escrow";
+    await transaction.save();
+
+    // Mark product as reserved
+    product.status = "sold";
     await product.save();
-    await order.save();
 
-    res.json({ message: "Order created, payment in escrow", order });
+    res.json({ message: "Transaction created in escrow", transaction });
   } catch (err) {
-    res.status(500).json({ error: "Error creating order" });
+    console.error("Error creating transaction:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ Seller marks order as shipped
-router.post("/ship/:id", requireKYC, async (req, res) => {
+// ✅ Seller confirms shipment
+router.post("/:id/ship", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    if (order.seller.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Only seller can mark shipped" });
+    const { id } = req.params;
+    const transaction = await Transaction.findById(id).populate("seller");
+
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+    if (transaction.status !== "escrow") {
+      return res.status(400).json({ error: "Transaction not in escrow" });
     }
 
-    order.status = "shipped";
-    await order.save();
+    transaction.status = "shipped";
+    await transaction.save();
 
-    res.json({ message: "Order shipped", order });
+    res.json({ message: "Seller confirmed shipment", transaction });
   } catch (err) {
-    res.status(500).json({ error: "Error updating order" });
+    console.error("Error updating shipment:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ Buyer confirms delivery
-router.post("/confirm/:id", requireKYC, async (req, res) => {
+// ✅ Buyer confirms delivery → release funds
+router.post("/:id/confirm", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    if (order.buyer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: "Only buyer can confirm" });
+    const { id } = req.params;
+    const transaction = await Transaction.findById(id).populate("buyer");
+
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+    if (transaction.status !== "shipped") {
+      return res.status(400).json({ error: "Transaction not shipped yet" });
     }
 
-    order.status = "completed";
-    await order.save();
+    transaction.status = "completed";
+    await transaction.save();
 
-    res.json({ message: "Delivery confirmed, funds released", order });
+    res.json({ message: "Buyer confirmed delivery, funds released", transaction });
   } catch (err) {
-    res.status(500).json({ error: "Error confirming delivery" });
+    console.error("Error confirming delivery:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 // ✅ Buyer opens dispute
-router.post("/dispute/:id", requireKYC, async (req, res) => {
+router.post("/:id/dispute", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    const { id } = req.params;
+    const transaction = await Transaction.findById(id);
 
-    order.status = "disputed";
-    order.disputeReason = req.body.reason || "No reason provided";
-    await order.save();
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
 
-    res.json({ message: "Dispute opened", order });
+    transaction.status = "disputed";
+    await transaction.save();
+
+    res.json({ message: "Dispute opened", transaction });
   } catch (err) {
-    res.status(500).json({ error: "Error opening dispute" });
+    console.error("Error opening dispute:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ Admin resolves dispute
-router.post("/resolve/:id", async (req, res) => {
+// ✅ Admin override → release or refund
+router.post("/:id/admin-action", async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ error: "Order not found" });
+    const { id } = req.params;
+    const { action, adminId } = req.body; // action = "release" | "refund"
 
-    // Here you'd check admin authentication
-    const { resolution } = req.body;
-    if (resolution === "refund") {
-      order.status = "refunded";
+    const transaction = await Transaction.findById(id);
+    if (!transaction) return res.status(404).json({ error: "Transaction not found" });
+
+    if (action === "release") {
+      transaction.status = "completed";
+    } else if (action === "refund") {
+      transaction.status = "refunded";
     } else {
-      order.status = "completed";
+      return res.status(400).json({ error: "Invalid action" });
     }
-    order.resolution = resolution;
 
-    await order.save();
+    transaction.escrowReleaseApprovedBy = adminId;
+    await transaction.save();
 
-    res.json({ message: `Dispute resolved: ${resolution}`, order });
+    res.json({ message: `Admin action executed: ${action}`, transaction });
   } catch (err) {
-    res.status(500).json({ error: "Error resolving dispute" });
+    console.error("Error in admin action:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 module.exports = router;
-/**
- * ✅ Get all orders for the logged-in user
- */
-router.get("/all", requireKYC, async (req, res) => {
-  try {
-    const orders = await Order.find({
-      $or: [
-        { buyer: req.user._id },
-        { seller: req.user._id },
-        { logistics: req.user._id }
-      ]
-    })
-      .populate("product", "name price")
-      .populate("buyer", "name email")
-      .populate("seller", "name email")
-      .populate("logistics", "name email");
-
-    res.json(orders);
-  } catch (err) {
-    res.status(500).json({ error: "Error fetching orders" });
-  }
-});
