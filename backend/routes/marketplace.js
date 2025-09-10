@@ -1,78 +1,78 @@
 const express = require("express");
+const router = express.Router();
 const Product = require("../models/Product");
 const User = require("../models/User");
-const router = express.Router();
 
-// Middleware to check KYC verification
-const requireKYC = async (req, res, next) => {
+// ✅ List a new product (KYC verified users only)
+router.post("/list", async (req, res) => {
   try {
-    const user = await User.findById(req.body.userId); // assumes userId is sent in request
-    if (!user) return res.status(404).json({ error: "User not found" });
-    if (!user.isKYCVerified) {
-      return res.status(403).json({ error: "KYC verification required" });
+    const { userId, name, description, price } = req.body;
+
+    if (!userId || !name || !price) {
+      return res.status(400).json({ error: "Missing required fields." });
     }
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-};
 
-// ✅ List a new product (only KYC users)
-router.post("/list", requireKYC, async (req, res) => {
-  try {
-    const { name, description, price } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    if (!user.isKYCVerified) {
+      return res.status(403).json({ error: "KYC verification required." });
+    }
+
     const product = new Product({
       name,
       description,
       price,
-      seller: req.user._id,
+      seller: user._id,
     });
+
     await product.save();
-    res.json(product);
+    res.json({ message: "Product listed successfully!", product });
   } catch (err) {
-    res.status(500).json({ error: "Error listing product" });
+    console.error("Error listing product:", err);
+    res.status(500).json({ error: "Server error." });
   }
 });
 
-// ✅ Get all available products
+// ✅ Get all products
 router.get("/all", async (req, res) => {
   try {
-    const products = await Product.find({ status: "available" }).populate("seller", "name email");
+    const products = await Product.find().populate("seller", "email phone");
     res.json(products);
   } catch (err) {
-    res.status(500).json({ error: "Error fetching products" });
+    console.error("Error fetching products:", err);
+    res.status(500).json({ error: "Server error." });
   }
 });
 
-// ✅ Buy a product (moves to escrow)
-router.post("/buy/:id", requireKYC, async (req, res) => {
+// ✅ Buy a product (KYC verified users only)
+router.post("/buy/:productId", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: "Product not found" });
-    if (product.status !== "available") return res.status(400).json({ error: "Not available" });
+    const { userId } = req.body;
+    const { productId } = req.params;
 
-    product.status = "in_escrow";
-    await product.save();
+    if (!userId) {
+      return res.status(400).json({ error: "User ID required." });
+    }
 
-    res.json({ message: "Payment pending, escrow started", product });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found." });
+
+    if (!user.isKYCVerified) {
+      return res.status(403).json({ error: "KYC verification required." });
+    }
+
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ error: "Product not found." });
+
+    // ⚡ Simulate escrow system here
+    res.json({
+      message: `✅ Purchase initiated for product: ${product.name}`,
+      product,
+    });
   } catch (err) {
-    res.status(500).json({ error: "Error buying product" });
-  }
-});
-
-// ✅ Confirm delivery and release funds
-router.post("/confirm/:id", requireKYC, async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: "Product not found" });
-
-    product.status = "sold";
-    await product.save();
-
-    res.json({ message: "Order confirmed, funds released", product });
-  } catch (err) {
-    res.status(500).json({ error: "Error confirming order" });
+    console.error("Error buying product:", err);
+    res.status(500).json({ error: "Server error." });
   }
 });
 
