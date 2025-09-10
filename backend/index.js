@@ -122,3 +122,11 @@ app.get("/", (req, res) => {
 });
 
 app.listen(3000, () => console.log("Backend running on port 3000"));
+app.post("/admin/makeLogistics", auth, adminOnly, (req, res) => {
+  const { userId } = req.body;
+  const user = users.find((u) => u.id == userId);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  user.role = "logistics";
+  res.json({ message: "User assigned as logistics", user });
+});
