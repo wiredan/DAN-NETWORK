@@ -1,84 +1,86 @@
 import React, { useState } from "react";
-import axios from "axios";
 
-const KYCUpload = ({ token, onVerified }) => {
-  const [idDoc, setIdDoc] = useState(null);
-  const [selfie, setSelfie] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+function KYC() {
+  const [idFile, setIdFile] = useState(null);
+  const [selfieFile, setSelfieFile] = useState(null);
+  const [status, setStatus] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!idDoc || !selfie) {
-      setMessage("Please upload both ID document and selfie.");
+
+    if (!idFile || !selfieFile) {
+      setStatus("⚠️ Please upload both ID and Selfie");
       return;
     }
 
     const formData = new FormData();
-    formData.append("idDoc", idDoc);
-    formData.append("selfie", selfie);
+    formData.append("id", idFile);
+    formData.append("selfie", selfieFile);
 
     try {
-      setLoading(true);
-      setMessage("Verifying your identity...");
+      const res = await fetch("/api/kyc/verify", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"), // JWT token
+        },
+        body: formData,
+      });
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/kyc/verify`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const data = await res.json();
 
-      if (res.data.success) {
-        setMessage("✅ KYC verified successfully!");
-        onVerified && onVerified(true);
+      if (res.ok) {
+        setStatus("✅ KYC Verified successfully! You can now buy and sell.");
+        // Optionally refresh user state in localStorage or context
+        localStorage.setItem("isKYCVerified", "true");
       } else {
-        setMessage("❌ Verification failed. Try again.");
+        setStatus("❌ Verification failed: " + data.message);
       }
     } catch (err) {
-      setMessage("⚠️ Error verifying KYC: " + err.response?.data?.error || err.message);
-    } finally {
-      setLoading(false);
+      console.error("KYC error:", err);
+      setStatus("⚠️ Server error. Try again later.");
     }
   };
 
   return (
-    <div className="p-6 border rounded-lg shadow bg-white dark:bg-gray-800">
-      <h2 className="text-xl font-bold mb-4">KYC Verification</h2>
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4">KYC Verification</h2>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-2 font-medium">Upload ID Document</label>
+          <label className="block mb-1">Upload ID Document</label>
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setIdDoc(e.target.files[0])}
-            className="w-full border rounded p-2"
+            onChange={(e) => setIdFile(e.target.files[0])}
+            className="w-full"
           />
         </div>
+
         <div>
-          <label className="block mb-2 font-medium">Upload Selfie</label>
+          <label className="block mb-1">Upload Selfie</label>
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setSelfie(e.target.files[0])}
-            className="w-full border rounded p-2"
+            onChange={(e) => setSelfieFile(e.target.files[0])}
+            className="w-full"
           />
         </div>
+
         <button
           type="submit"
-          disabled={loading}
-          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
         >
-          {loading ? "Verifying..." : "Submit for Verification"}
+          Submit for Verification
         </button>
       </form>
-      {message && <p className="mt-4 text-sm">{message}</p>}
+
+      {status && (
+        <p className="mt-4 text-center font-medium">
+          {status}
+        </p>
+      )}
     </div>
   );
-};
+}
 
-export default KYCUpload;
+export default KYC;
