@@ -130,3 +130,19 @@ app.post("/admin/makeLogistics", auth, adminOnly, (req, res) => {
   user.role = "logistics";
   res.json({ message: "User assigned as logistics", user });
 });
+app.post("/orders/:id/deliver", auth, (req, res) => {
+  const order = orders.find((o) => o.id == req.params.id);
+  if (!order) return res.status(404).json({ error: "Order not found" });
+
+  const user = users.find((u) => u.id === req.user.id);
+  if (!user || user.role !== "logistics") {
+    return res.status(403).json({ error: "Only logistics can confirm delivery" });
+  }
+
+  if (order.status !== "shipped") {
+    return res.status(400).json({ error: "Order must be shipped before delivery" });
+  }
+
+  order.status = "delivered";
+  res.json({ message: "Delivery confirmed by logistics", order });
+});
