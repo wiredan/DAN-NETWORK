@@ -92,3 +92,14 @@ app.post("/admin/orders/:id/refund", auth, adminOnly, (req, res) => {
   order.status = "refunded";
   res.json({ message: "Refund issued by admin", order });
 });
+import express from "express";
+
+const app = express();
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("Backend is running ✅");
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
