@@ -1,4 +1,5 @@
 {
+GEMINI_API_KEY=AIzaSyCD8lWzT2DbgzE0koWOG1PZOr5RWaZiixc
   "name": "agribusiness-network",
   "main": "_worker.js",
   "compatibility_date": "2024-09-01",
