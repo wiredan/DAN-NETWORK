@@ -1,0 +1,10 @@
+{
+  "name": "agribusiness-network",
+  "main": "_worker.js",
+  "compatibility_date": "2024-09-01",
+  "vars": {
+    "MONGO_URI": "",
+    "JWT_SECRET": "",
+    "GEMINI_API_KEY": ""
+  }
+}
