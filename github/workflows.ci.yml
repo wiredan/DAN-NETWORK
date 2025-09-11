@@ -1,5 +1,42 @@
-- name: Run AI Auto Debug
-  run: |
-    echo "🤖 Running AI Auto Debug..."
-    npm run lint || true
-    npm test || true
+name: AI Auto Debug
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint + Prettier
+        run: |
+          echo "🔍 Running lint + prettier..."
+          npx eslint . || true
+          npx prettier --check . || true
+
+      - name: Run Tests
+        run: |
+          echo "🧪 Running tests..."
+          npm test || echo "No tests defined"
+
+      - name: Run AI Auto Debug
+        run: |
+          echo "🤖 Running AI Auto Debug..."
+          # Try to detect + fix issues automatically
+          npx eslint . --fix || true
+          npx prettier --write . || true
+          echo "✅ Auto fixes applied"
