@@ -1,11 +1,8 @@
 const { execSync } = require("child_process");
 const fetch = require("node-fetch");
-const { Octokit } = require("@octokit/rest");
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Run tests & lint, capture errors
 function runCommand(cmd) {
   try {
     execSync(cmd, { stdio: "pipe" });
@@ -28,7 +25,7 @@ function runCommand(cmd) {
 
   console.log("⚠️ Errors found, sending to Gemini AI...");
 
-  // Call Gemini API
+  // Call Gemini AI for a direct fix
   const response = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
       GEMINI_API_KEY,
@@ -40,7 +37,7 @@ function runCommand(cmd) {
           {
             parts: [
               {
-                text: `Here are the errors:\n${errors}\n\nPlease suggest code fixes in plain text.`,
+                text: `Here are my code errors:\n${errors}\n\nPlease provide corrected code files with fixes applied. Reply in plain code only, do not explain.`,
               },
             ],
           },
@@ -57,30 +54,19 @@ function runCommand(cmd) {
     return;
   }
 
-  console.log("✅ AI Suggestion:\n", suggestion);
+  console.log("✅ AI Fix Applied:\n", suggestion);
 
-  // Create Pull Request with fix
-  const octokit = new Octokit({ auth: GITHUB_TOKEN });
-  const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
+  // Write fix into a file for record
+  require("fs").writeFileSync("AI_FIX.patch", suggestion);
 
-  const branchName = `ai-fix-${Date.now()}`;
-
-  // Create new branch
-  execSync(`git checkout -b ${branchName}`);
-  execSync(`echo "${suggestion}" > AI_FIX.md`);
-  execSync(`git add AI_FIX.md`);
-  execSync(`git commit -m "AI suggested fix"`);
-  execSync(`git push origin ${branchName}`);
-
-  // Create PR
-  await octokit.pulls.create({
-    owner,
-    repo,
-    title: "AI Suggested Fix",
-    head: branchName,
-    base: "main",
-    body: suggestion,
-  });
-
-  console.log("🚀 PR created with AI fix!");
+  // Apply patch if valid
+  try {
+    execSync("git apply AI_FIX.patch");
+    execSync("git add .");
+    execSync('git commit -m "🤖 AI auto-debug applied fix"');
+    execSync("git push origin main");
+    console.log("🚀 AI fix committed directly to main branch!");
+  } catch (err) {
+    console.error("❌ Failed to apply AI fix automatically:", err.message);
+  }
 })();
