@@ -20,3 +20,31 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+/build
+/dist
+/.cache
+/.next
+/out
+
+# Cloudflare Wrangler
+.wrangler
+
+# Misc
+.DS_Store
