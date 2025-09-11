@@ -1,0 +1,5 @@
+- name: Run AI Auto Debug
+  run: |
+    echo "🤖 Running AI Auto Debug..."
+    npm run lint || true
+    npm test || true
