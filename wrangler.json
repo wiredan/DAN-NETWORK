@@ -5,7 +5,6 @@
   "vars": {
     "MONGO_URI": "",
     "JWT_SECRET": "",
-    "GEMINI_API_KEY": 
-GEMINI_API_KEY=AIzaSyCD8lWzT2DbgzE0koWOG1PZOr5RWaZiixc""
+    "GEMINI_API_KEY":=AIzaSyCD8lWzT2DbgzE0koWOG1PZOr5RWaZiixc""
   }
 }
