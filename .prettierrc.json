@@ -1,4 +1,0 @@
-"scripts": {
-  "lint": "eslint . --ext .js,.jsx",
-  "format": "prettier --write ."
-}
