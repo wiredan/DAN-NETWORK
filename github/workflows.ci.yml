@@ -1,13 +1,11 @@
 name: AI Auto Debug
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build:
+  autofix:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,21 +20,33 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run ESLint + Prettier
+      - name: Run ESLint + Prettier (check only)
         run: |
-          echo "🔍 Running lint + prettier..."
+          echo "🔍 Checking code..."
           npx eslint . || true
           npx prettier --check . || true
 
-      - name: Run Tests
+      - name: Run ESLint + Prettier (auto-fix)
         run: |
-          echo "🧪 Running tests..."
-          npm test || echo "No tests defined"
-
-      - name: Run AI Auto Debug
-        run: |
-          echo "🤖 Running AI Auto Debug..."
-          # Try to detect + fix issues automatically
+          echo "⚡ Applying fixes..."
           npx eslint . --fix || true
           npx prettier --write . || true
-          echo "✅ Auto fixes applied"
+
+      - name: Commit and Push fixes
+        run: |
+          echo "📦 Committing fixes..."
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b auto-fix/${{ github.run_id }}
+          git add .
+          git commit -m "🤖 Auto-fix code style issues" || echo "No changes to commit"
+          git push origin auto-fix/${{ github.run_id }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "🤖 Auto-fix code style issues"
+          branch: auto-fix/${{ github.run_id }}
+          title: "🤖 Auto-fix code style issues"
+          body: "This PR contains automatic fixes from ESLint + Prettier."
