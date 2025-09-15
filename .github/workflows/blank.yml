@@ -36,3 +36,5 @@ jobs:
           echo test, and deploy your project.
 - name: Execute debug script
   run: ./debug_env.sh
+      - name: Execute debug script
+        run: ./debug_env.sh
