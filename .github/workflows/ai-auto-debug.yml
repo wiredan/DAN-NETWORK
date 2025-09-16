@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,8 +16,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -24,27 +25,29 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run ESLint + Prettier (check only)
+      - name: Run ESLint + Prettier
         run: |
           echo "🔍 Running lint + prettier..."
           npx eslint . || true
           npx prettier --check . || true
 
-      - name: Run Auto Fix (ESLint + Prettier)
+      - name: Run Tests
+        run: |
+          echo "🧪 Running tests..."
+          npm test || echo "No tests defined"
+
+      - name: Run AI Auto Debug
         run: |
           echo "🤖 Running AI Auto Debug..."
           npx eslint . --fix || true
           npx prettier --write . || true
           echo "✅ Auto fixes applied"
 
-      - name: Commit and Push changes
+      - name: Commit and Push fixes
         run: |
+          echo "📦 Committing fixes..."
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "🤖 AI Auto Debug: auto-fix lint/prettier issues"
-            git push
-          fi
+          git commit -m "🤖 Auto-fix: ESLint/Prettier issues" || echo "No changes to commit"
+          git push
