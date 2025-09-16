@@ -14,3 +14,8 @@ A full-stack app with authentication, marketplace, and auto-KYC verification usi
    cd backend
    npm install
 ![AI Auto Debug](https://github.com/murtalamaaruf/cloudflare-app/actions/workflows/ai-auto-debug.yml/badge.svg)
+# Cloudflare App
+
+![AI Auto Debug](https://github.com/murtalamaaruf/cloudflare-app/actions/workflows/ai-auto-debug.yml/badge.svg)
+
+This is a full-stack app with auto debugging, KYC verification, and marketplace features.
