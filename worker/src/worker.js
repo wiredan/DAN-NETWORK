@@ -1,11 +1,8 @@
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
+    const jwtSecret = env.JWT_SECRET;
+    const geminiKey = env.GEMINI_API_KEY;
 
-    if (url.pathname === "/api/hello") {
-      return new Response("Worker backend running ✅", { status: 200 });
-    }
-
-    return new Response("Not Found", { status: 404 });
+    return new Response(`JWT Secret length: ${jwtSecret.length}`, { status: 200 });
   },
 };
