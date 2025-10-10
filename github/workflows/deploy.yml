@@ -1,26 +1,29 @@
-name: Deploy App
+name: Deploy Cloudflare Worker
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    name: Deploy Worker to Cloudflare
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: npm install
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Lint and Build Frontend
-        run: |
-          cd frontend
-          npm install
-          npm run build
+      - name: Install Wrangler
+        run: npm install -g wrangler
 
-      - name: Deploy Backend
-        run: npx wrangler deploy --env production
-
-      - name: Deploy Frontend
-        run: npx wrangler pages deploy frontend/build
+      - name: Publish to Cloudflare
+        run: wrangler publish
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
