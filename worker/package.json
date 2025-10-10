@@ -2,13 +2,12 @@
   "name": "agrinetwork-worker",
   "version": "1.0.0",
   "main": "src/worker.js",
-  "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler publish",
-    "migrate": "wrangler d1 migrations apply agrinetwork-db"
+    "deploy": "wrangler publish"
   },
-  "dependencies": {
-    "itty-router": "^3.0.12"
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^3.78.0"
   }
 }
