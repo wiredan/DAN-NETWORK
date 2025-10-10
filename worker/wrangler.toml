@@ -3,13 +3,13 @@ main = "src/worker.js"
 compatibility_date = "2024-09-01"
 
 [vars]
-JWT_SECRET = "your_secret_here"e81c0af02c89a19e0c4b0a0a9942732f
-GEMINI_API_KEY =AIzaSyCD8lWzT2DbgzE0koWOG1PZOr5RWaZiixc "your_api_key_here"
+JWT_SECRET = "your_secret_here"
+GEMINI_API_KEY = "your_api_key_here"
 
 [[d1_databases]]
 binding = "DB"
 database_name = dannetwork
-database_id = "<YOUR_D1_DB_ID>"840d3e9a-87bf-47c6-a001-ba96631ade94
+database_id = "<YOUR_D1_DB_ID>"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
