@@ -1,16 +1,17 @@
-name = "agrinetwork-worker"
+name = "agrinetwork"
 main = "src/worker.js"
-compatibility_date = "2023-12-01"
+compatibility_date = "2024-09-01"
+
+[vars]
+JWT_SECRET = "your_secret_here"
+GEMINI_API_KEY = "your_api_key_here"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "agrinetwork-db"
-database_id = "REPLACE_WITH_DB_ID"
+database_name = "agrinetwork_db"
+database_id = "<YOUR_D1_DB_ID>"
 
 [[kv_namespaces]]
 binding = "SESSIONS"
-id = "REPLACE_WITH_KV_ID"
-
-[[kv_namespaces]]
-binding = "RL"
-id = "REPLACE_WITH_KV_ID"
+id = "<YOUR_KV_NAMESPACE_ID>"
+preview_id = "<YOUR_KV_NAMESPACE_PREVIEW_ID>"
