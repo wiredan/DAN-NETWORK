@@ -1,32 +1,26 @@
-# Dependencies
-node_modules
-/.pnp
-.pnp.js
-
-# Logs
+# Node modules
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
+# Build outputs
+dist/
+build/
+.cache/
+
+# Env and secrets
 .env
-.env.local
-.env.*.local
+.env.*
+*.local
 
-# Build output
-/build
-/dist
-/.cache
-/.next
-/out
-
-# Cloudflare Wrangler
-.wrangler
-
-# Misc
+# OS files
 .DS_Store
-node_modules
-dist
-build
-.env
-.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Cloudflare
+wrangler.toml.backup
