@@ -1,25 +1,21 @@
-### 🚀 Cloudflare Deployment Setup
+### 🌐 Frontend Deployment (Cloudflare Pages)
 
-#### Required Secrets (in GitHub → Settings → Secrets → Actions)
+The `frontend/` folder (React + Vite) deploys automatically via GitHub Actions.
 
-| Name | Description |
-|------|--------------|
-| CLOUDFLARE_API_TOKEN | Cloudflare API token with edit rights |
-| CLOUDFLARE_ACCOUNT_ID | Cloudflare account ID |
-| JWT_SECRET | JWT secret for auth |
-| GEMINI_API_KEY | Gemini AI key |
-| OPENAI_API_KEY | Optional |
-| STRIPE_SECRET_KEY | Optional |
-| D1_DATABASE_ID | D1 DB ID |
-| D1_DATABASE_NAME | D1 DB name |
-| KV_SESSIONS_ID | KV namespace ID |
-| R2_BUCKET_NAME | R2 bucket name |
-| R2_ACCESS_KEY_ID | R2 access key |
-| R2_SECRET_ACCESS_KEY | R2 secret key |
+**Workflow:** `.github/workflows/pages.yml`
 
-#### Deployment
-1. Add all the above secrets to GitHub.
-2. Push changes to `main`.
-3. GitHub Actions auto-deploys your Worker.
-4. Cloudflare automatically connects your D1, KV, and R2 resources.
-5. Frontend can deploy via Cloudflare Pages separately (output = `frontend/dist`).
+#### Build & Deploy Settings
+| Setting | Value |
+|----------|--------|
+| Build command | `cd frontend && npm ci && npm run build` |
+| Output directory | `frontend/dist` |
+| Environment variables | Same as Worker (`JWT_SECRET`, `GEMINI_API_KEY`, etc.) if needed |
+
+#### To enable:
+1. Ensure the same secrets (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) exist in GitHub.
+2. The first push will create a new Pages project named `dan-network-frontend` in Cloudflare automatically.
+3. After deployment, you’ll get your site URL (e.g. `dan-network-frontend.pages.dev`).
+
+---
+
+You can link this Pages frontend with your Worker backend under **Cloudflare → Pages → Settings → Functions / Worker Bindings**.
