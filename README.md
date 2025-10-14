@@ -19,3 +19,26 @@ The `frontend/` folder (React + Vite) deploys automatically via GitHub Actions.
 ---
 
 You can link this Pages frontend with your Worker backend under **Cloudflare → Pages → Settings → Functions / Worker Bindings**.
+# DAN-NETWORK Cloudflare Deployment
+
+## 🧭 Steps to Deploy
+
+1. Add all required GitHub Secrets:
+   - CLOUDFLARE_API_TOKEN
+   - CLOUDFLARE_ACCOUNT_ID
+   - OPENAI_API_KEY
+   - GEMINI_API_KEY
+   - STRIPE_SECRET_KEY
+   - DATABASE_URL
+   - JWT_SECRET
+   - R2_BUCKET_NAME
+
+2. Delete any `.env` files from the repository (if committed before).
+3. Push changes to `main`.
+4. Check the **Actions** tab in GitHub — your app will build and deploy automatically.
+
+## 🔧 Local Development
+
+```bash
+npm install
+npm run dev
