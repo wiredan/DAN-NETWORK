@@ -24,3 +24,20 @@ logs/
 
 # Cloudflare
 wrangler.toml.backup
+# Node
+node_modules/
+dist/
+.build/
+.env
+
+# Cloudflare
+.wrangler/
+wrangler.toml.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env files
+.env
+.env.*
