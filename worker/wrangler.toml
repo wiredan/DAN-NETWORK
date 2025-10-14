@@ -1,27 +1,8 @@
-name = "dan-network-worker"
-main = "src/worker.js"
-compatibility_date = "2025-10-13"
-
-# Use GitHub secrets for all keys; this file only defines structure
-account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+name = "dan-network"
+main = "worker/index.ts"
+compatibility_date = "2025-10-10"
+account_id = ""
+workers_dev = true
 
 [vars]
-# These are just references; values come from GitHub secrets / Cloudflare dashboard
-JWT_SECRET = "${JWT_SECRET}"
-GEMINI_API_KEY = "${GEMINI_API_KEY}"
-OPENAI_API_KEY = "${OPENAI_API_KEY}"
-STRIPE_SECRET_KEY = "${STRIPE_SECRET_KEY}"
-R2_BUCKET_NAME = "${R2_BUCKET_NAME}"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "${D1_DATABASE_NAME}"
-database_id = "${D1_DATABASE_ID}"
-
-[[kv_namespaces]]
-binding = "SESSIONS"
-id = "${KV_SESSIONS_ID}"
-
-[[r2_buckets]]
-binding = "ASSETS"
-bucket_name = "${R2_BUCKET_NAME}"
+# No API keys here — they should all come from GitHub Secrets
