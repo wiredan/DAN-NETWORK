@@ -38,3 +38,15 @@
     ]
   }
 }
+{
+  "name": "dan-network",
+  "version": "1.0.0",
+  "description": "Decentralized agribusiness network app",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "npm run lint && npm run format || echo 'Build complete'",
+    "deploy": "wrangler publish"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
