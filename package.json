@@ -35,3 +35,6 @@
   "vite": "^5.3.1",
   ...
 }
+"scripts": {
+  "build": "vite build || npm install @vitejs/plugin-react --save-dev && vite build"
+}
