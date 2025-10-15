@@ -33,7 +33,3 @@
     "node": ">=18"
   }
 }
-"type": "module",
-"engines": {
-  "node": ">=18"
-}
