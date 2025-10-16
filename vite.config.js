@@ -1,13 +1,21 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
-  root: 'frontend', // use the folder with index.html
+  root: "frontend", // 👈 points to the correct location of index.html
   build: {
-    outDir: '../dist',
+    outDir: "../dist", // output folder one level above frontend
+    emptyOutDir: true,
+  },
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "frontend/src"),
+    },
   },
   server: {
     port: 5173,
+    open: true,
   },
-})
+});
