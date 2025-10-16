@@ -1,30 +1,44 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import KYCBanner from "./components/KYCBanner";
-import Marketplace from "./pages/Marketplace";
-import KYCUpload from "./components/KYCUpload";
-import Login from "./pages/Login";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import "./index.css";
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle("dark", !darkMode);
+  };
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        <Navbar user={user} setUser={setUser} />
-        <KYCBanner />
-        <Routes>
-          <Route path="/" element={<Marketplace />} />
-          <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} />
-          <Route path="/signup" element={<Signup setUser={setUser} setToken={setToken} />} />
-          <Route path="/kyc" element={<KYCUpload />} />
-        </Routes>
+      <div className={darkMode ? "dark" : ""}>
+        <div className="min-h-screen bg-white dark:bg-[#0b0e11] text-gray-900 dark:text-gray-100 transition-colors duration-300">
+          <nav className="navbar">
+            <Link to="/" className="font-bold text-lg">
+              🌾 DAN Network
+            </Link>
+            <div className="flex gap-4 items-center">
+              <Link to="/signup" className="btn btn-primary">Signup</Link>
+              <Link to="/login" className="btn btn-secondary">Login</Link>
+              <button onClick={toggleTheme} className="theme-toggle">
+                {darkMode ? "🌙" : "☀️"}
+              </button>
+            </div>
+          </nav>
+
+          <main className="container py-8">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </main>
+        </div>
       </div>
     </Router>
   );
 }
-
-export default App;
