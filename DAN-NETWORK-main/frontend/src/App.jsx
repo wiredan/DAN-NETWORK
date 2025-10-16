@@ -1,46 +1,29 @@
 import React, { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import Signup from "./pages/signup.jsx";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import KYCBanner from "./components/KYCBanner";
+import Marketplace from "./pages/Marketplace";
+import KYCUpload from "./components/KYCUpload";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 function App() {
-  const [theme, setTheme] = useState("dark");
-
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
 
   return (
-    <div
-      className={`min-h-screen ${
-        theme === "dark" ? "bg-dark text-light" : "bg-light text-dark"
-      } transition-colors duration-300`}
-    >
-      <header className="flex justify-between items-center p-4 border-b border-gray-700">
-        <h1 className="text-xl font-bold text-primary">DAN-NETWORK</h1>
-        <button
-          onClick={toggleTheme}
-          className="px-3 py-1 bg-primary text-dark rounded-lg font-semibold hover:opacity-90"
-        >
-          {theme === "dark" ? "Light Mode" : "Dark Mode"}
-        </button>
-      </header>
-
-      <main className="p-4">
+    <Router>
+      <div className="min-h-screen bg-gray-50 text-gray-900">
+        <Navbar user={user} setUser={setUser} />
+        <KYCBanner />
         <Routes>
-          <Route path="/" element={<Navigate to="/signup" replace />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="*" element={<div>404 - Page not found</div>} />
+          <Route path="/" element={<Marketplace />} />
+          <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} />
+          <Route path="/signup" element={<Signup setUser={setUser} setToken={setToken} />} />
+          <Route path="/kyc" element={<KYCUpload />} />
         </Routes>
-      </main>
-
-      <footer className="text-center py-4 border-t border-gray-700 mt-10">
-        <p className="text-sm text-gray-400">
-          © {new Date().getFullYear()} DAN-NETWORK. All rights reserved.
-        </p>
-      </footer>
-    </div>
+      </div>
+    </Router>
   );
 }
 
