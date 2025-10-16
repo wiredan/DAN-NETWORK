@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  // 🛠️ FIX: Tells Vite to use the 'src' directory as the project root, 
+  // where it expects to find index.html
+  root: 'src', 
   server: {
     port: 5173,
     proxy: {
