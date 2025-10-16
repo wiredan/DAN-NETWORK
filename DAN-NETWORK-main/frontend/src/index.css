@@ -2,31 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global style overrides */
-html,
+/* ===== Global App Styles ===== */
+:root {
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #0b0e11;
+  --color-primary: #f0b90b;
+  --color-secondary: #1e2329;
+  --color-accent: #2b3139;
+}
+
+/* Smooth theme transition */
+html {
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Mode */
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: #0b0e11; /* dark mode default */
-  color: #fafafa;
-  min-height: 100%;
+  @apply bg-white text-gray-900 font-sans;
 }
 
-a {
-  color: #f0b90b;
-  text-decoration: none;
+/* Dark Mode */
+.dark body {
+  @apply bg-[#0b0e11] text-gray-100;
 }
 
-a:hover {
-  opacity: 0.85;
+/* ===== Layout Utilities ===== */
+.container {
+  @apply mx-auto px-4;
 }
 
-button {
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+/* Buttons */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all;
+}
+.btn-primary {
+  @apply bg-primary text-black hover:bg-yellow-400;
+}
+.btn-secondary {
+  @apply bg-secondary text-white hover:bg-gray-700;
 }
 
-button:hover {
-  opacity: 0.9;
+/* Card */
+.card {
+  @apply bg-white dark:bg-accent rounded-2xl p-4 shadow-md;
+}
+
+/* Navbar */
+.navbar {
+  @apply flex justify-between items-center py-3 px-4 bg-secondary text-white dark:bg-accent;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  @apply cursor-pointer text-xl transition-colors hover:text-primary;
 }
