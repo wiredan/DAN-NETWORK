@@ -1,0 +1,39 @@
+name: Deploy DAN-NETWORK to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main  # deploy when pushing to main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # 4️⃣ Build the Vite app
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # 5️⃣ Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: DAN-NETWORK
+          directory: frontend/dist
